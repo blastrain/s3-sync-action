@@ -17,6 +17,11 @@ if [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
   exit 1
 fi
 
+if [ -z "$AWS_DISTRIBUTION_ID" ]; then
+  echo "AWS_DISTRIBUTION_ID is not set. Quitting."
+  exit 1
+fi
+
 # Default to us-east-1 if AWS_REGION not set.
 if [ -z "$AWS_REGION" ]; then
   AWS_REGION="us-east-1"
@@ -51,6 +56,8 @@ for src_file in $(\find ${SOURCE_DIR:-.} -name '*.html'); do
   sh -c "aws s3 cp ${src_file} s3://${AWS_S3_BUCKET}${dest_path} \
               --content-type text/html"
 done
+
+sh -c 'aws cloudfront create-invalidation --distribution-id ${AWS_DISTRIBUTION_ID} --paths "/*"'
 
 # Clear out credentials after we're done.
 # We need to re-run `aws configure` with bogus input instead of
